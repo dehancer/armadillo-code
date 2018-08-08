@@ -1065,16 +1065,16 @@ sp_auxlib::spsolve_refine(Mat<typename T1::elem_type>& X, typename T1::pod_type&
 template<typename eT>
 inline
 bool
-sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
+sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
   {
   arma_extra_debug_sigprint();
   
   // TODO: this is a rough better-than-nothing solution; it co-opts superlu gssv() to find the LU decomposition of A
   // TODO: rewrite to use superlu gstrf()
   
-  if(A.n_rows    != A.n_cols)  { U_diag.reset(); return false; }
-  if(A.n_elem    == 0       )  { U_diag.ones(1); return true;  }
-  if(A.n_nonzero == 0       )  { U_diag.zeros(); return true;  }
+  if(A.n_rows    != A.n_cols)  { out_U_diag.reset(); return false; }
+  if(A.n_elem    == 0       )  { out_U_diag.ones(1); return true;  }
+  if(A.n_nonzero == 0       )  { out_U_diag.zeros(); return true;  }
   
   #if defined(ARMA_USE_SUPERLU)
     {
@@ -1164,42 +1164,28 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
     // 
     // as in this case det(L) = 1, we only need to extract the diagonal from U
     
-    arma_debug_check( ((l.Mtype != superlu::SLU_TRLU) || (u.Mtype != superlu::SLU_TRU) || (u.Stype != superlu::SLU_NC)), "det(): problem with SuperLU decomposition result format" );
-    
     if( (info >= 0) && (info <= int(A.n_cols)) )
       {
-      // NOTE: SuperMatrix u is not stored in CSC format, even though u.Stype = superlu::SLU_NC; clearly that would be too logical given the nature of the SuperLU codebase
+      arma_debug_check( ((l.Mtype != superlu::SLU_TRLU) || (u.Mtype != superlu::SLU_TRU) || (u.Stype != superlu::SLU_NC)), "det(): problem with SuperLU decomposition result format" );
+      
+      // NOTE: SuperMatrix u is not stored in CSC format, even though u.Stype = superlu::SLU_NC;
+      // NOTE: clearly that would be too logical given the nature of the SuperLU codebase
       
       superlu::NCformat* u_Store = (superlu::NCformat*)(u.Store);
       
       arma_debug_check( ((u.nrow != u.ncol) || (u_Store->nnz <= 0)), "det(): problem with SuperLU decomposition result format" );
       
-      SpMat<eT> U(uword(u.nrow), uword(u.ncol));
+      SpMat<eT> U;  extract_U(U, l, u);
       
-      U.mem_resize( uword(u_Store->nnz) );
+      const SpMat<eT>& const_U = U;
       
-      cout << "u_Store->nnz: " << (u_Store->nnz) << endl;
+      out_U_diag.set_size(const_U.n_rows);
       
-      uword extracted_nnz = 0;
+      for(uword i=0; i < const_U.n_rows; ++i)  { out_U_diag.at(i) = const_U.at(i,i); }
       
-      extract_U(l, u, access::rwp(U.values), access::rwp(U.row_indices), access::rwp(U.col_ptrs), &extracted_nnz);
-      
-      // DANGER: u_Store->nnz may not match extracted_nnz, as SuperLU may store explicitly store zero values and count them as non-zeros
-      
-      cout << "extracted_nnz: " << extracted_nnz << endl;
-      
-      U.print_dense("U:");
-      
-      U_diag.set_size(U.n_rows);
-      
-      for(uword i=0; i<U.n_rows; ++i)
-        {
-        U_diag(i) = U(i,i);
-        }
+      sword sign = sword(1);
       
       const uword N = A.n_rows;
-      
-      int sign = int(1);
       
       for(uword i=0; i < N; i++)
       for(uword j=i; j < N; j++)
@@ -1208,7 +1194,7 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
         if(perm_c[j] < perm_c[i]) { sign *= -1; }
         }
       
-      cout << "sign: " << sign << endl;
+      out_sign = sign;
       
       status = true;
       }
@@ -1450,15 +1436,13 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
   template<typename eT>
   inline
   void
-  sp_auxlib::extract_U(const superlu::SuperMatrix& L, const superlu::SuperMatrix& U, eT* Uval, uword* Urow, uword* Ucol, uword* snnzU)
+  sp_auxlib::extract_U(SpMat<eT>& out, const superlu::SuperMatrix& L, const superlu::SuperMatrix& U)
     {
     const superlu::SCformat& Lstore = *((const superlu::SCformat*)(L.Store));
     const superlu::NCformat& Ustore = *((const superlu::NCformat*)(U.Store));
     
     const eT* L_nzval = (const eT*)(Lstore.nzval);
     const eT* U_nzval = (const eT*)(Ustore.nzval);
-    
-    uword lastu = uword(0);
     
     // SuperLU stores zeros in its intepreration of a "sparse" matrix,
     // so we need to count the actual number of non-zeros
@@ -1491,9 +1475,18 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
         }
       }
     
-    cout << "actual_nnz: " << actual_nnz << endl;
+    // cout << "actual_nnz: " << actual_nnz << endl;
     
-    Ucol[0] = 0;
+    out.set_size(uword(U.nrow), uword(U.ncol));
+    out.mem_resize(actual_nnz);
+    
+       eT* out_values      = access::rwp(out.values);
+    uword* out_row_indices = access::rwp(out.row_indices);
+    uword* out_col_ptrs    = access::rwp(out.col_ptrs);
+    
+    uword count = uword(0);
+    
+    out_col_ptrs[0] = uword(0);
     
     for(int k=0; k <= Lstore.nsuper; ++k)
       {
@@ -1508,23 +1501,23 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
           {
           const eT val = U_nzval[i];
           
-          if(val != eT(0))   { Uval[lastu] = val; Urow[lastu] = (uword)(Ustore.rowind[i]); ++lastu; }
+          if(val != eT(0))  { out_values[count] = val; out_row_indices[count] = (uword)(Ustore.rowind[i]); ++count; }
           }
         
         for(int i=0; i < upper; ++i)
           {
           const eT val = SNptr[i];
           
-          if(val != eT(0))   { Uval[lastu] = val; Urow[lastu] = (uword)(Lstore.rowind[istart+i]); ++lastu; }
+          if(val != eT(0))  { out_values[count] = val; out_row_indices[count] = (uword)(Lstore.rowind[istart+i]); ++count; }
           }
         
-        Ucol[j+1] = lastu;
+        out_col_ptrs[j+1] = count;
         
         ++upper;
         }
       }
     
-    *snnzU = lastu;
+    // U.print_dense("U:");
     }
 
 #endif
