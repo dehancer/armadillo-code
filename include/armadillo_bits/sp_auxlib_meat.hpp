@@ -1213,7 +1213,8 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
     }
   #else
     {
-    arma_ignore(U_diag);
+    arma_ignore(out_U_diag);
+    arma_ignore(out_sign);
     arma_ignore(A);
     arma_stop_logic_error("det(): use of SuperLU must be enabled");
     return false;
