@@ -323,6 +323,19 @@ namespace superlu
   
   typedef struct
     {
+    int_t  nnz;
+    int_t  nsuper;
+    void*  nzval;
+    int_t* nzval_colptr;
+    int_t* rowind;
+    int_t* rowind_colptr;
+    int_t* col_to_sup;
+    int_t* sup_to_col;
+    } SCformat;
+  
+  
+  typedef struct
+    {
     int_t lda;
     void* nzval;
     } DNformat;
