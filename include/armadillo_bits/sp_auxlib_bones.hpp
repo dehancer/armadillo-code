@@ -86,7 +86,7 @@ class sp_auxlib
     inline static void destroy_supermatrix(superlu::SuperMatrix& out);
     
     template<typename eT>
-    inline static void extract_U(superlu::SuperMatrix* L, superlu::SuperMatrix* U, eT* Uval, uword* Urow, uword* Ucol, uword* snnzU);
+    inline static void extract_U(const superlu::SuperMatrix& L, const superlu::SuperMatrix& U, eT* Uval, uword* Urow, uword* Ucol, uword* snnzU);
   #endif
   
   

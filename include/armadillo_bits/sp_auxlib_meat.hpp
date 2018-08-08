@@ -1069,7 +1069,7 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
   {
   arma_extra_debug_sigprint();
   
-  // NOTE: this is a rough better-than-nothing solution; it co-opts superlu gssv() to find the LU decomposition of A
+  // TODO: this is a rough better-than-nothing solution; it co-opts superlu gssv() to find the LU decomposition of A
   // TODO: rewrite to use superlu gstrf()
   
   if(A.n_rows    != A.n_cols)  { U_diag.reset(); return false; }
@@ -1182,7 +1182,7 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
       
       uword extracted_nnz = 0;
       
-      extract_U(&l, &u, access::rwp(U.values), access::rwp(U.row_indices), access::rwp(U.col_ptrs), &extracted_nnz);
+      extract_U(l, u, access::rwp(U.values), access::rwp(U.row_indices), access::rwp(U.col_ptrs), &extracted_nnz);
       
       // DANGER: u_Store->nnz may not match extracted_nnz, as SuperLU may store explicitly store zero values and count them as non-zeros
       
@@ -1450,37 +1450,72 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
   template<typename eT>
   inline
   void
-  sp_auxlib::extract_U(superlu::SuperMatrix* L, superlu::SuperMatrix* U, eT* Uval, uword* Urow, uword* Ucol, uword* snnzU)
+  sp_auxlib::extract_U(const superlu::SuperMatrix& L, const superlu::SuperMatrix& U, eT* Uval, uword* Urow, uword* Ucol, uword* snnzU)
     {
-    superlu::SCformat* Lstore = (superlu::SCformat*)(L->Store);
-    superlu::NCformat* Ustore = (superlu::NCformat*)(U->Store);
+    const superlu::SCformat& Lstore = *((const superlu::SCformat*)(L.Store));
+    const superlu::NCformat& Ustore = *((const superlu::NCformat*)(U.Store));
+    
+    const eT* L_nzval = (const eT*)(Lstore.nzval);
+    const eT* U_nzval = (const eT*)(Ustore.nzval);
     
     uword lastu = uword(0);
     
-    Ucol[0] = 0;
+    // SuperLU stores zeros in its intepreration of a "sparse" matrix,
+    // so we need to count the actual number of non-zeros
     
-    for(int k = 0; k <= Lstore->nsuper; ++k)
+    uword actual_nnz = uword(0);
+    
+    for(int k=0; k <= Lstore.nsuper; ++k)
       {
-      int fsupc  = Lstore->sup_to_col[k];
-      int istart = Lstore->rowind_colptr[fsupc];
-      int upper  = 1;
+      int upper = 1;
       
-      for(int j = fsupc; j < Lstore->sup_to_col[k+1]; ++j)
+      for(int j=Lstore.sup_to_col[k]; j < Lstore.sup_to_col[k+1]; ++j)
         {
-        eT* SNptr = &((eT*)Lstore->nzval)[Lstore->nzval_colptr[j]];
-        
-        for(int i = Ustore->colptr[j]; i < Ustore->colptr[j+1]; ++i)
+        for(int i=Ustore.colptr[j]; i < Ustore.colptr[j+1]; ++i)
           {
-          Uval[lastu] = ((eT*)(Ustore->nzval))[i];
+          const eT val = U_nzval[i];
           
-          if (Uval[lastu] != eT(0))   { Urow[lastu++] = (uword)(Ustore->rowind[i]); }
+          if(val != eT(0)) { ++actual_nnz; }
           }
         
-        for(int i = 0; i < upper; ++i)
+        const eT* SNptr = &(L_nzval[Lstore.nzval_colptr[j]]);
+        
+        for(int i=0; i < upper; ++i)
           {
-          Uval[lastu] = SNptr[i];
+          const eT val = SNptr[i];
           
-          if (Uval[lastu] != eT(0))   { Urow[lastu++] = (uword)(Lstore->rowind[istart+i]); }
+          if(val != eT(0)) { ++actual_nnz; }
+          }
+        
+        ++upper;
+        }
+      }
+    
+    cout << "actual_nnz: " << actual_nnz << endl;
+    
+    Ucol[0] = 0;
+    
+    for(int k=0; k <= Lstore.nsuper; ++k)
+      {
+      int istart = Lstore.rowind_colptr[ Lstore.sup_to_col[k] ];
+      int upper  = 1;
+      
+      for(int j=Lstore.sup_to_col[k]; j < Lstore.sup_to_col[k+1]; ++j)
+        {
+        const eT* SNptr = &(L_nzval[Lstore.nzval_colptr[j]]);
+        
+        for(int i=Ustore.colptr[j]; i < Ustore.colptr[j+1]; ++i)
+          {
+          const eT val = U_nzval[i];
+          
+          if(val != eT(0))   { Uval[lastu] = val; Urow[lastu] = (uword)(Ustore.rowind[i]); ++lastu; }
+          }
+        
+        for(int i=0; i < upper; ++i)
+          {
+          const eT val = SNptr[i];
+          
+          if(val != eT(0))   { Uval[lastu] = val; Urow[lastu] = (uword)(Lstore.rowind[istart+i]); ++lastu; }
           }
         
         Ucol[j+1] = lastu;
