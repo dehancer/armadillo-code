@@ -1197,6 +1197,19 @@ sp_auxlib::superlu_det(Col<eT>& U_diag, const SpMat<eT>& A)
         U_diag(i) = U(i,i);
         }
       
+      const uword N = A.n_rows;
+      
+      int sign = int(1);
+      
+      for(uword i=0; i < N; i++)
+      for(uword j=i; j < N; j++)
+        {
+        if(perm_r[j] < perm_r[i]) { sign *= -1; }
+        if(perm_c[j] < perm_c[i]) { sign *= -1; }
+        }
+      
+      cout << "sign: " << sign << endl;
+      
       status = true;
       }
     
