@@ -126,4 +126,98 @@ log_det
 
 
 
+template<typename T1>
+inline
+void
+log_det
+  (
+        typename T1::elem_type&            out_val,
+        typename T1::pod_type&             out_sign,
+  const SpBase<typename T1::elem_type,T1>& X,
+  const typename arma_blas_type_only<typename T1::elem_type>::result* junk = 0
+  )
+  {
+  arma_extra_debug_sigprint();
+  arma_ignore(junk);
+  
+  typedef typename T1::elem_type eT;
+  typedef typename T1::pod_type   T;
+  
+  const unwrap_spmat<T1> U(X.get_ref());
+  
+  const SpMat<eT>& A = U.M;
+  
+  arma_debug_check( (A.is_square() == false), "det(): given matrix must be square sized" );
+  
+  if(A.n_elem == 0)
+    {
+    out_val  = eT(1);
+    out_sign =  T(1);
+    }
+  
+  if(A.n_nonzero == 0)
+    {
+    out_val  = eT(0);
+    out_sign =  T(1);
+    }
+  
+  Col<eT> U_diag;
+  
+  sword LU_sign = sword(1);
+  
+  const bool status = sp_auxlib::superlu_det(U_diag, LU_sign, A);
+  
+  if( (status == false) || U_diag.is_empty() )
+    {
+    out_val  = eT(Datum<T>::nan);
+    out_sign = T(0);
+    
+    arma_warn("log_det(): failed to find determinant");
+    }
+  
+  sword sign = (is_cx<eT>::no) ? ( (access::tmp_real(U_diag[0]) < T(0)) ? -1 : +1 ) : +1;
+  eT    val  = (is_cx<eT>::no) ? std::log( (access::tmp_real(U_diag[0]) < T(0)) ? U_diag[0]*T(-1) : U_diag[0] ) : std::log( U_diag[0] );
+  
+  for(uword i=1; i < U_diag.n_elem; ++i)
+    {
+    const eT x = U_diag[i];
+    
+    sign *= (is_cx<eT>::no) ? ( (access::tmp_real(x) < T(0)) ? -1 : +1 ) : +1;
+    val  += (is_cx<eT>::no) ? std::log( (access::tmp_real(x) < T(0)) ? x*T(-1) : x ) : std::log(x);
+    }
+  
+  sign *= LU_sign;
+  
+  out_val  = val;
+  out_sign = (sign < 0) ? T(-1) : T(+1);
+  }
+
+
+
+template<typename T1>
+inline
+arma_warn_unused
+std::complex<typename T1::pod_type>
+log_det
+  (
+  const SpBase<typename T1::elem_type,T1>& X,
+  const typename arma_blas_type_only<typename T1::elem_type>::result* junk = 0
+  )
+  {
+  arma_extra_debug_sigprint();
+  arma_ignore(junk);
+  
+  typedef typename T1::elem_type eT;
+  typedef typename T1::pod_type   T;
+  
+  eT out_val  = eT(0);
+   T out_sign =  T(0);
+  
+  log_det(out_val, out_sign, X.get_ref());
+  
+  return (out_sign >= T(1)) ? std::complex<T>(out_val) : (out_val + std::complex<T>(T(0),Datum<T>::pi));
+  }
+
+
+
 //! @}

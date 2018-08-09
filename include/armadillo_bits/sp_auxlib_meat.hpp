@@ -1069,12 +1069,10 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
   {
   arma_extra_debug_sigprint();
   
+  // NOTE: assuming that the given matrix A is square and non-empty
+  
   // TODO: this is a rough better-than-nothing solution; it co-opts superlu gssv() to find the LU decomposition of A
   // TODO: rewrite to use superlu gstrf()
-  
-  if(A.n_rows    != A.n_cols)  { out_U_diag.reset(); return false; }
-  if(A.n_elem    == 0       )  { out_U_diag.ones(1); return true;  }
-  if(A.n_nonzero == 0       )  { out_U_diag.zeros(); return true;  }
   
   #if defined(ARMA_USE_SUPERLU)
     {
@@ -1168,8 +1166,7 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
       {
       arma_debug_check( ((l.Mtype != superlu::SLU_TRLU) || (u.Mtype != superlu::SLU_TRU) || (u.Stype != superlu::SLU_NC)), "det(): problem with SuperLU decomposition result format" );
       
-      // NOTE: SuperMatrix u is not stored in CSC format, even though u.Stype = superlu::SLU_NC;
-      // NOTE: clearly that would be too logical given the nature of the SuperLU codebase
+      // NOTE: SuperMatrix u is not stored in CSC format, even though u.Stype = superlu::SLU_NC
       
       superlu::NCformat* u_Store = (superlu::NCformat*)(u.Store);
       
@@ -1454,9 +1451,15 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
       {
       int upper = 1;
       
-      for(int j=Lstore.sup_to_col[k]; j < Lstore.sup_to_col[k+1]; ++j)
+      const int Lstore_sup_to_col_k   = Lstore.sup_to_col[k  ];
+      const int Lstore_sup_to_col_kp1 = Lstore.sup_to_col[k+1];
+      
+      for(int j=Lstore_sup_to_col_k; j < Lstore_sup_to_col_kp1; ++j)
         {
-        for(int i=Ustore.colptr[j]; i < Ustore.colptr[j+1]; ++i)
+        const int Ustore_colptr_j   = Ustore.colptr[j  ];
+        const int Ustore_colptr_jp1 = Ustore.colptr[j+1];
+        
+        for(int i=Ustore_colptr_j; i < Ustore_colptr_jp1; ++i)
           {
           const eT val = U_nzval[i];
           
@@ -1491,14 +1494,21 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
     
     for(int k=0; k <= Lstore.nsuper; ++k)
       {
-      int istart = Lstore.rowind_colptr[ Lstore.sup_to_col[k] ];
-      int upper  = 1;
+      int upper = 1;
       
-      for(int j=Lstore.sup_to_col[k]; j < Lstore.sup_to_col[k+1]; ++j)
+      const int Lstore_sup_to_col_k   = Lstore.sup_to_col[k  ];
+      const int Lstore_sup_to_col_kp1 = Lstore.sup_to_col[k+1];
+      
+      const int ioffset = Lstore.rowind_colptr[ Lstore_sup_to_col_k ];
+      
+      for(int j=Lstore_sup_to_col_k; j < Lstore_sup_to_col_kp1; ++j)
         {
         const eT* SNptr = &(L_nzval[Lstore.nzval_colptr[j]]);
         
-        for(int i=Ustore.colptr[j]; i < Ustore.colptr[j+1]; ++i)
+        const int Ustore_colptr_j   = Ustore.colptr[j  ];
+        const int Ustore_colptr_jp1 = Ustore.colptr[j+1];
+        
+        for(int i=Ustore_colptr_j; i < Ustore_colptr_jp1; ++i)
           {
           const eT val = U_nzval[i];
           
@@ -1509,7 +1519,7 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
           {
           const eT val = SNptr[i];
           
-          if(val != eT(0))  { out_values[count] = val; out_row_indices[count] = (uword)(Lstore.rowind[istart+i]); ++count; }
+          if(val != eT(0))  { out_values[count] = val; out_row_indices[count] = (uword)(Lstore.rowind[ioffset+i]); ++count; }
           }
         
         out_col_ptrs[j+1] = count;
@@ -1518,7 +1528,7 @@ sp_auxlib::superlu_det(Col<eT>& out_U_diag, sword& out_sign, const SpMat<eT>& A)
         }
       }
     
-    // U.print_dense("U:");
+    // out.print_dense("out:");
     }
 
 #endif

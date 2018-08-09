@@ -137,6 +137,49 @@ det
 
 
 
+template<typename T1>
+arma_warn_unused
+inline
+typename enable_if2< is_supported_blas_type<typename T1::elem_type>::value, typename T1::elem_type >::result
+det
+  (
+  const SpBase<typename T1::elem_type,T1>& X
+  )
+  {
+  arma_extra_debug_sigprint();
+  
+  typedef typename T1::elem_type eT;
+  typedef typename T1::pod_type   T;
+  
+  const unwrap_spmat<T1> U(X.get_ref());
+  
+  const SpMat<eT>& A = U.M;
+  
+  arma_debug_check( (A.is_square() == false), "det(): given matrix must be square sized" );
+  
+  if(A.n_elem    == 0)  { return eT(1); }
+  if(A.n_nonzero == 0)  { return eT(0); }
+  
+  Col<eT> U_diag;
+  
+  sword sign = sword(1);
+  
+  const bool status = sp_auxlib::superlu_det(U_diag, sign, A);
+  
+  if( (status == false) || U_diag.is_empty() )
+    {
+    arma_warn("log_det(): failed to find determinant");
+    
+    return eT(Datum<T>::nan);
+    }
+  
+  const eT val = prod(U_diag);
+  
+  return ( (sign < 0) ? -val : val );
+  }
+
+
+
 //! NOTE: don't use this form: it will be removed
 template<typename T1>
 arma_deprecated
