@@ -5001,12 +5001,15 @@ auxlib::rcond(const Base<typename T1::pod_type,T1>& A_expr)
     podarray<blas_int> iwork(A.n_rows);
     podarray<blas_int> ipiv( (std::min)(A.n_rows, A.n_cols) );
     
+    arma_extra_debug_print("lapack::lange()");
     norm_val = lapack::lange(&norm_id, &m, &n, A.memptr(), &lda, work.memptr());
     
+    arma_extra_debug_print("lapack::getrf()");
     lapack::getrf(&m, &n, A.memptr(), &lda, ipiv.memptr(), &info);
     
     if(info != blas_int(0))  { return T(0); }
     
+    arma_extra_debug_print("lapack::gecon()");
     lapack::gecon(&norm_id, &n, A.memptr(), &lda, &norm_val, &rcond, work.memptr(), iwork.memptr(), &info);
     
     if(info != blas_int(0))  { return T(0); }
@@ -5055,15 +5058,17 @@ auxlib::rcond(const Base<std::complex<typename T1::pod_type>,T1>& A_expr)
     podarray< T>       junk(1);
     podarray<eT>        work(2*A.n_rows);
     podarray< T>       rwork(2*A.n_rows);
-    podarray<blas_int> iwork(A.n_rows);
     podarray<blas_int> ipiv( (std::min)(A.n_rows, A.n_cols) );
     
+    arma_extra_debug_print("lapack::lange()");
     norm_val = lapack::lange(&norm_id, &m, &n, A.memptr(), &lda, junk.memptr());
     
+    arma_extra_debug_print("lapack::getrf()");
     lapack::getrf(&m, &n, A.memptr(), &lda, ipiv.memptr(), &info);
     
     if(info != blas_int(0))  { return T(0); }
     
+    arma_extra_debug_print("lapack::cx_gecon()");
     lapack::cx_gecon(&norm_id, &n, A.memptr(), &lda, &norm_val, &rcond, work.memptr(), rwork.memptr(), &info);
     
     if(info != blas_int(0))  { return T(0); }
