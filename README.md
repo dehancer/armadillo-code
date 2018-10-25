@@ -74,8 +74,9 @@ Authors:
 
 ### 2: Citation Details
 
-Please cite the following papers if you use Armadillo in your research and/or software.
-Citations are useful for the continued development and maintenance of the library.
+Please cite one (or both) of the following papers if you use Armadillo
+in your research and/or software. Citations are useful for the continued
+development and maintenance of the library.
 
   * Conrad Sanderson and Ryan Curtin.  
     Armadillo: a template-based C++ library for linear algebra.  
@@ -288,10 +289,9 @@ Faster and/or alternative implementations of BLAS and LAPACK are available:
 
 The OpenBLAS and Intel MKL libraries are generally the fastest.
 
-**Caveat:** Windows and MSVC are poor platforms for scientific/engineering development.
-The MSVC compiler has a multitude of bugs and produces low-performance executables.
-For any serious and/or performance critical work, we recommend using
-a Linux based operating system:
+**Caveat:** 
+for any high performance scientific/engineering workloads,
+we strongly recommend using a Linux based operating system:
   * Fedora  http://fedoraproject.org/
   * Ubuntu  http://www.ubuntu.com/
   * CentOS  http://centos.org/
