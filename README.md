@@ -75,7 +75,7 @@ Authors:
 ### 2: Citation Details
 
 Please cite one (or both) of the following papers if you use Armadillo
-in your research and/or software. Citations are useful for the continued
+in your research and/or software.  Citations are useful for the continued
 development and maintenance of the library.
 
   * Conrad Sanderson and Ryan Curtin.  
@@ -464,15 +464,14 @@ Octave/Matlab with C++ code that uses Armadillo matrices.
 
 ### 17: Related Software Using Armadillo
 
-* MLPACK: extensive library of machine learning algorithms
-  (regression, hidden Markov models, neural networks, etc)  
+* MLPACK: extensive library of machine learning algorithms  
   http://mlpack.org
+
+* ensmallen: flexible C++ library for efficient mathematical optimisation  
+  http://ensmallen.org/
 
 * SigPack: C++ signal processing library  
   http://sigpack.sourceforge.net
-
-* OptimLib: C++ library of numerical optimisation methods for nonlinear functions  
-  https://www.kthohr.com/optimlib.html
 
 * RcppArmadillo: integration of Armadillo with the R system and environment  
   http://dirk.eddelbuettel.com/code/rcpp.armadillo.html
