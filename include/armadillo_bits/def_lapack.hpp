@@ -396,9 +396,6 @@
 #endif
 
 
-// NOTE: "For arguments of CHARACTER type, the character length is passed as a hidden argument at the end of the argument list."
-// NOTE: https://gcc.gnu.org/onlinedocs/gfortran/Argument-passing-conventions.html
-
 
 extern "C"
   {
