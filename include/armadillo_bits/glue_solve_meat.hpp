@@ -86,9 +86,9 @@ glue_solve_gen::apply(Mat<eT>& out, const Base<eT,T1>& A_expr, const Base<eT,T2>
     #endif
     
     #if defined(ARMA_OPTIMISE_SOLVE_SYMPD)
-      const bool is_sympd = ((no_sympd == false) && (auxlib::crippled_lapack(A) == false) && (is_band == false)) ? sympd_helper::guess_sympd(A) : false;
+      const bool try_sympd = ((no_sympd == false) && (auxlib::crippled_lapack(A) == false) && (is_band == false)) ? sympd_helper::guess_sympd(A) : false;
     #else
-      const bool is_sympd = false;
+      const bool try_sympd = false;
     #endif
     
     if(fast)
@@ -109,9 +109,9 @@ glue_solve_gen::apply(Mat<eT>& out, const Base<eT,T1>& A_expr, const Base<eT,T2>
           }
         }
       else
-      if(is_sympd)
+      if(try_sympd)
         {
-        arma_extra_debug_print("glue_solve_gen::apply(): fast + sympd");
+        arma_extra_debug_print("glue_solve_gen::apply(): fast + try_sympd");
         
         status = auxlib::solve_sympd_fast(out, A, B_expr.get_ref());  // A is overwritten
         
@@ -149,9 +149,9 @@ glue_solve_gen::apply(Mat<eT>& out, const Base<eT,T1>& A_expr, const Base<eT,T2>
           }
         }
       else
-      if(is_sympd)
+      if(try_sympd)
         {
-        arma_extra_debug_print("glue_solve_gen::apply(): refine + sympd");
+        arma_extra_debug_print("glue_solve_gen::apply(): refine + try_sympd");
         
         status = auxlib::solve_sympd_refine(out, rcond, A, B_expr.get_ref(), equilibrate, allow_ugly);  // A is overwritten
         
