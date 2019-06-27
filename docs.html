@@ -1783,7 +1783,11 @@ F.save("mat_field");
 <br><b>sp_cx_mat</b>
 <ul>
 <li>
-Classes for sparse matrices; intended for storing very large matrices, where the vast majority of elements are zero
+Classes for sparse matrices, with elements stored in <a href="http://en.wikipedia.org/wiki/Sparse_matrix">compressed sparse column (CSC) format</a>
+</li>
+<br>
+<li>
+Specifically intended for large matrices where only a small minority of the elements is non-zero
 </li>
 <br>
 <li>
@@ -1800,10 +1804,6 @@ The root sparse matrix class is <b>SpMat&lt;</b><i>type</i><b>&gt;</b>, where <i
 This class behaves in a similar manner to the <a href="#Mat">Mat</a> class;
 however, member functions which set all elements to non-zero values (and hence do not make sense for sparse matrices) have been deliberately omitted;
 examples of omitted functions: <a href="#fill">.fill()</a>, <a href="#ones_member">.ones()</a>, +=&nbsp;scalar, etc.
-</li>
-<br>
-<li>
-The elements are stored in <a href="http://en.wikipedia.org/wiki/Sparse_matrix">compressed sparse column (CSC) format</a>
 </li>
 <br>
 <li>
@@ -10002,15 +10002,15 @@ mat B = repmat(A, 4, 5);
 
 <div class="pagebreak"></div><div class="noprint"><hr class="greyline"><br></div>
 <a name="reshape"></a>
-<b>reshape( X, n_rows, n_cols )</b> &nbsp;&nbsp; (X is a vector or matrix)
-<br><b>reshape( X, size(Y) )</b>
+<b>reshape( mat, n_rows, n_cols )</b>
+<br><b>reshape( mat, size(X) )</b>
 <br>
-<br><b>reshape( Q, n_rows, n_cols, n_slices )</b> &nbsp;&nbsp; (Q is a cube)
-<br><b>reshape( Q, size(R) )</b>
+<br><b>reshape( cube, n_rows, n_cols, n_slices )</b>
+<br><b>reshape( cube, size(X) )</b>
 <ul>
 <li>
-Generate a vector/matrix/cube with given size specifications,
-whose elements are taken from the given object in a column-wise manner;
+Generate a matrix or cube sized according to given size specifications,
+whose elements are taken from the given vector/matrix/cube in a column-wise manner;
 the elements in the generated object are placed column-wise (ie. the first column is filled up before filling the second column)
 </li>
 <br>
@@ -10076,15 +10076,15 @@ See also:
 
 <div class="pagebreak"></div><div class="noprint"><hr class="greyline"><br></div>
 <a name="resize"></a>
-<b>resize( X, n_rows, n_cols )</b> &nbsp;&nbsp; (X is a vector or matrix)
-<br><b>resize( X, size(Y) )</b>
+<b>resize( mat, n_rows, n_cols )</b>
+<br><b>resize( mat, size(X) )</b>
 <br>
-<br><b>resize( Q, n_rows, n_cols, n_slices )</b> &nbsp;&nbsp; (Q is a cube)
-<br><b>resize( Q, size(R) )</b>
+<br><b>resize( cube, n_rows, n_cols, n_slices )</b>
+<br><b>resize( cube, size(X) )</b>
 <ul>
 <li>
-Generate a vector/matrix/cube with given size specifications,
-whose elements as well as the layout of the elements are taken from the given object
+Generate a matrix or cube sized according to given size specifications,
+whose elements as well as the layout of the elements are taken from the given matrix/cube
 </li>
 <br>
 <li>
@@ -12823,14 +12823,6 @@ For <code>"superlu"</code>, <i>ARMA_USE_SUPERLU</i> must be enabled in <a href="
 <li>
 For <code>"lapack"</code>, sparse matrix <i>A</i> is converted to a dense matrix before using the LAPACK solver; this considerably increases memory usage
 </li>
-</ul>
-</li>
-<br>
-<li>
-<b>Notes</b>:
-<ul>
-<li>The SuperLU solver is mainly useful for very large and/or very sparse matrices</li>
-<li>If you have sufficient amount of memory to store a dense version of matrix <i>A</i>, the LAPACK solver can be faster</li>
 </ul>
 </li>
 <br>

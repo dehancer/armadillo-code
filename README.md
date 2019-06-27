@@ -11,7 +11,7 @@ Copyright 2017-2019 Data61, CSIRO
 ### Quick Links  
 
 - [download latest stable release](http://arma.sourceforge.net/download.html)
-- [documentation for functions and classes](http://arma.sourceforge.net/docs.html)
+- [function & syntax documentation](http://arma.sourceforge.net/docs.html)
 - [bug reports & questions](http://arma.sourceforge.net/faq.html)  
 
 ---
@@ -35,7 +35,7 @@ Copyright 2017-2019 Data61, CSIRO
 11. [Support for C++11 / C++14 Features](#11-support-for-c11-c14-features)
 12. [Support for OpenMP](#12-support-for-openmp)
 
-13. [Documentation](#13-documentation)
+13. [API Documentation](#13-api-documentation)
 14. [API Stability and Versioning](#14-api-stability-and-versioning)
 15. [Bug Reports and Frequently Asked Questions](#15-bug-reports-and-frequently-asked-questions)
 
@@ -390,9 +390,9 @@ may lead to speed regressions on recent processors.
 
 ---
 
-### 13: Documentation
+### 13: API Documentation
 
-The documentation for Armadillo functions and classes is available at:  
+Documentation of functions, classes and options is available at:  
 http://arma.sourceforge.net/docs.html
 
 The documentation is also in the "docs.html" file in this folder,
