@@ -5605,27 +5605,6 @@ SpMat<eT>::steal_mem(SpMat<eT>& x)
   {
   arma_extra_debug_sigprint();
   
-  if(this != &x)
-    {
-    x.sync_csc();
-    
-    steal_mem_simple(x);
-    
-    invalidate_cache();
-    
-    x.invalidate_cache();
-    }
-  }
-
-
-
-template<typename eT>
-inline
-void
-SpMat<eT>::steal_mem_simple(SpMat<eT>& x)
-  {
-  arma_extra_debug_sigprint();
-  
   if(this == &x)  { return; }
   
   bool layout_ok = false;
@@ -5642,40 +5621,53 @@ SpMat<eT>::steal_mem_simple(SpMat<eT>& x)
   
   if(layout_ok)
     {
-    if(x.n_nonzero == 0)
-      {
-      (*this).zeros(x.n_rows, x.n_cols);
-      }
-    else
-      {
-      if(values     )  { memory::release(access::rw(values));      }
-      if(row_indices)  { memory::release(access::rw(row_indices)); }
-      if(col_ptrs   )  { memory::release(access::rw(col_ptrs));    }
-      
-      access::rw(n_rows)    = x.n_rows;
-      access::rw(n_cols)    = x.n_cols;
-      access::rw(n_elem)    = x.n_elem;
-      access::rw(n_nonzero) = x.n_nonzero;
-      
-      access::rw(values)      = x.values;
-      access::rw(row_indices) = x.row_indices;
-      access::rw(col_ptrs)    = x.col_ptrs;
-      
-      // Set other matrix to empty.
-      access::rw(x.n_rows)    = 0;
-      access::rw(x.n_cols)    = 0;
-      access::rw(x.n_elem)    = 0;
-      access::rw(x.n_nonzero) = 0;
-      
-      access::rw(x.values)      = NULL;
-      access::rw(x.row_indices) = NULL;
-      access::rw(x.col_ptrs)    = NULL;
-      }
+    x.sync_csc();
+    
+    steal_mem_simple(x);
+    
+    x.invalidate_cache();
+    
+    invalidate_cache();
     }
   else
     {
     (*this).operator=(x);
     }
+  }
+
+
+
+template<typename eT>
+inline
+void
+SpMat<eT>::steal_mem_simple(SpMat<eT>& x)
+  {
+  arma_extra_debug_sigprint();
+  
+  if(this == &x)  { return; }
+  
+  if(values     )  { memory::release(access::rw(values));      }
+  if(row_indices)  { memory::release(access::rw(row_indices)); }
+  if(col_ptrs   )  { memory::release(access::rw(col_ptrs));    }
+  
+  access::rw(n_rows)    = x.n_rows;
+  access::rw(n_cols)    = x.n_cols;
+  access::rw(n_elem)    = x.n_elem;
+  access::rw(n_nonzero) = x.n_nonzero;
+  
+  access::rw(values)      = x.values;
+  access::rw(row_indices) = x.row_indices;
+  access::rw(col_ptrs)    = x.col_ptrs;
+  
+  // Set other matrix to empty.
+  access::rw(x.n_rows)    = 0;
+  access::rw(x.n_cols)    = 0;
+  access::rw(x.n_elem)    = 0;
+  access::rw(x.n_nonzero) = 0;
+  
+  access::rw(x.values)      = NULL;
+  access::rw(x.row_indices) = NULL;
+  access::rw(x.col_ptrs)    = NULL;
   }
 
 
