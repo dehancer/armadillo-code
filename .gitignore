@@ -1,6 +1,9 @@
 *.o
 *.so*
 *.bak
+.idea
+cmake-*
+build*
 CMakeCache.txt
 cmake_install.cmake
 ArmadilloConfig.cmake

@@ -37,8 +37,8 @@ set(ARMA_USE_WRAPPER true)
 
 # the settings below will be automatically configured by the rest of this script
 
-set(ARMA_USE_LAPACK           false)
-set(ARMA_USE_BLAS             false)
+set(ARMA_USE_LAPACK           true)
+set(ARMA_USE_BLAS             true)
 set(ARMA_USE_ATLAS            false)
 set(ARMA_USE_HDF5_ALT         false)
 set(ARMA_USE_ARPACK           false)
@@ -121,7 +121,7 @@ endif()
 if(MSVC)
   option(BUILD_SHARED_LIBS "build shared library" OFF)
 else()
-  option(BUILD_SHARED_LIBS "build shared library" ON)
+  option(BUILD_SHARED_LIBS "build shared library" OFF)
 endif()
 
 option(DETECT_HDF5 "Detect HDF5 and include HDF5 support, if found" ON)
