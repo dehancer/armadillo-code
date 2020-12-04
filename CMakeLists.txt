@@ -35,6 +35,19 @@ include(CheckLibraryExists)
 
 set(ARMA_USE_WRAPPER true)
 
+option(BUILD_TESTING OFF)
+option(DEHACNER_TARGET_ARCH "")
+
+if (DEHACNER_TARGET_ARCH)
+  #
+  # x86_64-apple-macos10.13
+  # or
+  # arm64-apple-macos11
+  #
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -target ${DEHACNER_TARGET_ARCH}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -target ${DEHACNER_TARGET_ARCH}")
+endif ()
+
 # the settings below will be automatically configured by the rest of this script
 
 set(ARMA_USE_LAPACK           true)
