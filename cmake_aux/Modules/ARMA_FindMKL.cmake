@@ -24,7 +24,7 @@ else()
   set(MKL_ARCH ia32)
 endif()
 
-set(MKL_ROOT $ENV{MKLROOT} CACHE TYPE STRING)
+set(MKL_ROOT $ENV{MKLROOT}) # CACHE TYPE STRING)
 
 if(NOT MKL_ROOT)
   set(MKL_ROOT "/opt/intel/mkl")
