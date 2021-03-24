@@ -419,6 +419,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
 elseif(WIN32)
   add_definitions(/MT /DWIN32=1 /D_ITERATOR_DEBUG_LEVEL=0)
+  string(TOLOWER  ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+  if (${BUILD_TYPE} STREQUAL "debug")
+    add_definitions(/MTd)
+  endif()
 endif()
 
 
