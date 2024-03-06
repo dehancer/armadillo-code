@@ -27,9 +27,9 @@
 ## NOTE: More details: http://arma.sourceforge.net/faq.html
 
 
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(armadillo CXX C)
+project(armadillo VERSION 9.700.0 LANGUAGES CXX C)
 include(CheckIncludeFileCXX)
 include(CheckLibraryExists)
 
